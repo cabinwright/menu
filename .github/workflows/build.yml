@@ -16,13 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # before setup-java: the runner's sdkmanager needs its default (newer) Java
+      - name: Android SDK parts
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;29.0.2" "platforms;android-23" > /dev/null
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '11'
-
-      - name: Android SDK parts
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;29.0.2" "platforms;android-23" > /dev/null
 
       - name: Signing key
         env:
