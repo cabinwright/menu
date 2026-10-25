@@ -1,0 +1,11 @@
+[nemesis]
+version=1.1
+id=kia.menu
+name=Kia menu: Edit Menu
+types=application
+
+[app.0]
+kind=apk
+path=app/kia-menu-editor.apk
+package=dev.kiamenu.editor
+component=dev.kiamenu.editor/.MenuActivity

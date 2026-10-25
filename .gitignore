@@ -1,0 +1,7 @@
+dist/
+launcher/build/
+launcher/tools/*.jar
+*.apk
+*.dex
+*.odex
+.DS_Store
