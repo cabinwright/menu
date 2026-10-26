@@ -61,7 +61,7 @@ smali a -j 1 --api 18 smali -o classes.dex
 **Reload:** Kia's `com.hkmc.system.app.allmenu.UPDATE` (no permission needed) only does the
 partial refresh (`aY.a(aY,int,boolean)`): icons and enabled states of the items already there.
 It does **not** run `g.load()` or the loader. A full rebuild needs `aY.t(true)`; the Cabinwright
-patch adds the broadcast `dev.cabinwright.action.RELOAD` for that.
+patch adds the broadcast `app.cabinwright.action.RELOAD` for that.
 
 **Logging:** `utils/i` logs under the tag `AdvancedLauncher` (debug and info levels show in
 logcat): useful markers are `start task to make menu list`, `loading menu entries...`,

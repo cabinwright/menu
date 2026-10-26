@@ -45,10 +45,10 @@ Without Edit Menu installed the hook just adds custom apps after the stock entri
 <activity android:name=".Main">
     <intent-filter>
         <action android:name="android.intent.action.MAIN" />
-        <category android:name="dev.cabinwright.category.ALL_MENUS" />
+        <category android:name="app.cabinwright.category.ALL_MENUS" />
     </intent-filter>
-    <meta-data android:name="dev.cabinwright.icon" android:resource="@drawable/menu_icon" />
-    <meta-data android:name="dev.cabinwright.icon_disabled" android:resource="@drawable/menu_icon_dis" />
+    <meta-data android:name="app.cabinwright.icon" android:resource="@drawable/menu_icon" />
+    <meta-data android:name="app.cabinwright.icon_disabled" android:resource="@drawable/menu_icon_dis" />
 </activity>
 ```
 
@@ -65,7 +65,7 @@ Anything reached only by reflection needs a keep rule in `<app dir>/proguard-rul
 `CABINWRIGHT_MAP=<file>` keeps R8's name map for reading stack traces. In Kotlin, avoid function
 references (`::foo`): they pull in Kotlin's reflection classes.
 
-Send `dev.cabinwright.action.RELOAD` to make All Menus pick it up. See `MenuContract` for the rest.
+Send `app.cabinwright.action.RELOAD` to make All Menus pick it up. See `MenuContract` for the rest.
 The Tweaks app (`app/` in [cabinwright/tweaks](https://github.com/cabinwright/tweaks)) is a
 complete example, CarBroker included.
 

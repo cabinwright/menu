@@ -13,4 +13,4 @@ find "$ROOT/api/broker/src" "$HERE/src" -name '*.kt' >"$OUT/sources.txt"
 JAVA_HOME=$JDK "$FT/kotlinc/bin/kotlinc" -jvm-target 1.8 -no-reflect -Werror \
     -classpath "$FT/android-json.jar:$FT/android-19.jar" -d "$OUT/classes" "@$OUT/sources.txt"
 "$JDK/bin/java" -cp "$OUT/classes:$FT/android-json.jar:$FT/kotlinc/lib/kotlin-stdlib.jar" \
-    dev.cabinwright.api.broker.BrokerTest
+    app.cabinwright.api.broker.BrokerTest

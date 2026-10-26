@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="dev.cabinwright.menu"
+    package="app.cabinwright.menu"
     android:versionCode="1"
     android:versionName="1.0">
 
@@ -27,16 +27,16 @@
             <!-- shows this app in All Menus (Cabinwright launcher hook) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="dev.cabinwright.category.ALL_MENUS" />
+                <category android:name="app.cabinwright.category.ALL_MENUS" />
             </intent-filter>
-            <meta-data android:name="dev.cabinwright.icon" android:resource="@drawable/menu_icon" />
-            <meta-data android:name="dev.cabinwright.icon_disabled" android:resource="@drawable/menu_icon_dis" />
+            <meta-data android:name="app.cabinwright.icon" android:resource="@drawable/menu_icon" />
+            <meta-data android:name="app.cabinwright.icon_disabled" android:resource="@drawable/menu_icon_dis" />
         </activity>
 
         <!-- the launcher hook reads the layout here, and reports its entries (system uid only) -->
         <provider
             android:name=".MenuProvider"
-            android:authorities="dev.cabinwright.menu"
+            android:authorities="app.cabinwright.menu"
             android:exported="true" />
     </application>
 </manifest>
