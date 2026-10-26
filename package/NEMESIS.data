@@ -6,6 +6,6 @@ types=application
 
 [app.0]
 kind=apk
-path=app/edit-menu.apk
+path=edit-menu.apk
 package=dev.cabinwright.menu
 component=dev.cabinwright.menu/.MenuActivity
