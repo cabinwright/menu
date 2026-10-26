@@ -16,14 +16,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # before setup-java: the runner's sdkmanager needs its default (newer) Java
+      # before setup-java: the runner's sdkmanager needs its default (newer) Java.
+      # Only build-tools: android.jar (API 19) comes from fetch-tools.sh with the rest
       - name: Android SDK parts
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;29.0.2" "platforms;android-23" > /dev/null
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;29.0.2" > /dev/null
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '11'
+
+      # Kotlin, R8, android-19.jar, ktlint, detekt, shellcheck: pinned in fetch-tools.sh
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/kia-menu-tools
+          key: kia-menu-tools-${{ runner.os }}-${{ hashFiles('api/tools/fetch-tools.sh') }}
+
+      - name: Tools
+        run: sh api/tools/fetch-tools.sh
+
+      - name: Lint
+        run: sh api/tools/lint.sh
 
       - name: Signing key
         env:
@@ -55,11 +68,14 @@ jobs:
           sh build.sh
           sh launcher/check-hook.sh
           mv dist/kia.menu.zip "dist/kia.menu-v$VERSION.zip"
+          mv dist/kia-menu-editor.map "dist/kia-menu-editor-v$VERSION.map"
 
       - uses: actions/upload-artifact@v4
         with:
           name: kia.menu-v${{ env.VERSION }}
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/*.map
 
       - name: Release
         if: github.ref_type == 'tag'
@@ -69,8 +85,9 @@ jobs:
           cat > "$RUNNER_TEMP/notes.md" <<NOTES
           **Edit Menu** (NEMESIS package \`kia.menu\` $VERSION): install \`kia.menu-v$VERSION.zip\` with NEMESIS
           (USB stick, or \`nemesis install --update <zip>\` over ADB).
+          \`kia-menu-editor-v$VERSION.map\` is R8's name map, for reading its stack traces (retrace).
 
           The launcher hook is built from your own car's stock launcher: see the README.
           NOTES
-          gh release create "$GITHUB_REF_NAME" dist/*.zip --title "kia-menu $GITHUB_REF_NAME" \
+          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.map --title "kia-menu $GITHUB_REF_NAME" \
             --notes-file "$RUNNER_TEMP/notes.md" --generate-notes
