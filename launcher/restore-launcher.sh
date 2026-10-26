@@ -11,7 +11,11 @@ SUM_ODEX=12c9a96cae35fce9c11fab3918cd912a
 L=/storage/usb0/launcher-restore.log
 log() { echo "$(date) $1" >> $L; }
 
-sum() { md5 "$1" 2>/dev/null | while read -r s f; do echo "$s"; done; }
+# md5 prints "<sum>  <file>"; keep the sum (no cut or awk in toolbox)
+sum() {
+    s=$(md5 "$1" 2>/dev/null)
+    echo "${s%% *}"
+}
 
 log "restore start"
 if [ "$(sum $B/Launcher_WP3.apk)" != $SUM_APK ] || [ "$(sum $B/Launcher_WP3.odex)" != $SUM_ODEX ]; then

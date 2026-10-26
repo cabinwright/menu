@@ -12,7 +12,11 @@ APP=/system/app
 SUM_APK=768d9fda8efcd2d38dbe34e58ca37d1a
 SUM_ODEX=12c9a96cae35fce9c11fab3918cd912a
 
-sum() { md5 "$1" 2>/dev/null | while read -r s f; do echo "$s"; done; }
+# md5 prints "<sum>  <file>"; keep the sum (no cut or awk in toolbox)
+sum() {
+    s=$(md5 "$1" 2>/dev/null)
+    echo "${s%% *}"
+}
 fail() { echo "FAIL: $1"; /system/xbin/nemesis remount ro >/dev/null 2>&1; exit 1; }
 
 [ -s "$NEW" ] || fail "no apk at $NEW"
@@ -22,8 +26,11 @@ if [ "$(sum $B/Launcher_WP3.apk)" = $SUM_APK ] && [ "$(sum $B/Launcher_WP3.odex)
     echo "stock backup present"
 elif [ "$(sum $APP/Launcher_WP3.apk)" = $SUM_APK ] && [ "$(sum $APP/Launcher_WP3.odex)" = $SUM_ODEX ]; then
     mkdir -p $B || fail "mkdir $B"
-    cp $APP/Launcher_WP3.apk $B/ && cp $APP/Launcher_WP3.odex $B/ || fail "backup copy"
-    [ "$(sum $B/Launcher_WP3.apk)" = $SUM_APK ] && [ "$(sum $B/Launcher_WP3.odex)" = $SUM_ODEX ] || fail "backup doesn't match stock"
+    cp $APP/Launcher_WP3.apk $B/ || fail "backup copy"
+    cp $APP/Launcher_WP3.odex $B/ || fail "backup copy"
+    if [ "$(sum $B/Launcher_WP3.apk)" != $SUM_APK ] || [ "$(sum $B/Launcher_WP3.odex)" != $SUM_ODEX ]; then
+        fail "backup doesn't match stock"
+    fi
     echo "backed up stock launcher to $B"
 else
     fail "launcher on /system isn't stock and there is no stock backup - refusing"

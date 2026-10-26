@@ -14,7 +14,7 @@ OUT=${2:-$HERE/build/Launcher_WP3.apk}
 case "$OUT" in /*) ;; *) OUT=$(pwd)/$OUT ;; esac
 SDK=${ANDROID_HOME:-$HOME/Library/Android/sdk}
 BT=$SDK/build-tools/${BUILD_TOOLS:-29.0.2}
-JAR=$SDK/platforms/android-23/android.jar
+JAR=$(sh "$HERE/../api/tools/fetch-tools.sh")/android-19.jar   # the car's API level
 JDK=${JAVA_HOME:-$(/usr/libexec/java_home -v 11)}
 JAVA=$JDK/bin/java
 
@@ -56,12 +56,13 @@ BCP=core.jar:conscrypt.jar:okhttp.jar:core-junit.jar:bouncycastle.jar:ext.jar:fr
 
 # the hook: compiled against stubs of the two launcher classes it uses
 mkdir -p "$CS/stubs" "$CS/hook" "$CS/hookdex"
-"$JDK/bin/javac" -source 8 -target 8 -bootclasspath "$JAR" -Xlint:-options -d "$CS/stubs" \
-    $(find "$HERE/hook/stubs" -name '*.java')
+find "$HERE/hook/stubs" -name '*.java' >"$CS/stubs.txt"
+find "$HERE/hook/src" "$HERE/../api/contract/src" -name '*.java' >"$CS/hook.txt"
+"$JDK/bin/javac" -source 8 -target 8 -bootclasspath "$JAR" -Xlint:-options -d "$CS/stubs" "@$CS/stubs.txt"
 "$JDK/bin/javac" -source 8 -target 8 -bootclasspath "$JAR" -Xlint:-options -cp "$CS/stubs" \
-    -d "$CS/hook" $(find "$HERE/hook/src" "$HERE/../api/contract/src" -name '*.java')
-"$BT/d8" --release --min-api 19 --lib "$JAR" --classpath "$CS/stubs" --output "$CS/hookdex" \
-    $(find "$CS/hook" -name '*.class')
+    -d "$CS/hook" "@$CS/hook.txt"
+find "$CS/hook" -name '*.class' -exec "$BT/d8" --release --min-api 19 --lib "$JAR" --classpath "$CS/stubs" \
+    --output "$CS/hookdex" {} +
 "$JAVA" -jar "$TOOLS/baksmali-2.5.2.jar" d "$CS/hookdex/classes.dex" -o "$CS/hooksmali"
 cp -R "$CS/hooksmali/dev" "$CS/smali/"
 

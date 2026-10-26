@@ -4,15 +4,15 @@
 # needs the stock APK from the car: see build.sh.
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)
-SDK=${ANDROID_HOME:-$HOME/Library/Android/sdk}
-JAR=$SDK/platforms/android-23/android.jar
+JAR=$(sh "$HERE/../api/tools/fetch-tools.sh")/android-19.jar   # the car's API level
 JDK=${JAVA_HOME:-$(/usr/libexec/java_home -v 11)}
 OUT=$(mktemp -d)
 trap 'rm -rf "$OUT"' EXIT
 mkdir -p "$OUT/stubs" "$OUT/hook"
-"$JDK/bin/javac" -source 8 -target 8 -bootclasspath "$JAR" -Xlint:-options -d "$OUT/stubs" \
-    $(find "$HERE/hook/stubs" -name '*.java')
+find "$HERE/hook/stubs" -name '*.java' >"$OUT/stubs.txt"
+find "$HERE/hook/src" "$HERE/../api/contract/src" -name '*.java' >"$OUT/hook.txt"
+"$JDK/bin/javac" -source 8 -target 8 -bootclasspath "$JAR" -Xlint:-options -d "$OUT/stubs" "@$OUT/stubs.txt"
 "$JDK/bin/javac" -source 8 -target 8 -bootclasspath "$JAR" -Xlint:-options -cp "$OUT/stubs" \
-    -d "$OUT/hook" $(find "$HERE/hook/src" "$HERE/../api/contract/src" -name '*.java')
+    -d "$OUT/hook" "@$OUT/hook.txt"
 python3 -I -c 'import ast, sys; ast.parse(open(sys.argv[1]).read())' "$HERE/hook/patch.py"
 echo "hook ok"
