@@ -1,4 +1,4 @@
-# ktlint settings for kia-menu-style repos (lint.sh passes this file)
+# ktlint settings for Cabinwright repos (lint.sh passes this file)
 root = true
 
 [*.{kt,kts}]

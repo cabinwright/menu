@@ -378,7 +378,7 @@ stays on MicomAudioService's audio stack (section 9).
 
 Confirmed working on the car: audible, knob volume and volume bar work, no Kia screen opens,
 and `abandonAudioFocus` returns to GPM (`track_exclusive=21`, unmuted). This is what
-kia-menu's `KiaAudio` does.
+Cabinwright's `CarAudio` does.
 
 ```java
 am.setPermitAudioFocusOnCallState(true);                       // optional, as GPM/USB do

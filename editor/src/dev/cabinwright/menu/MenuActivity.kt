@@ -1,4 +1,4 @@
-package dev.kiamenu.editor
+package dev.cabinwright.menu
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -13,18 +13,18 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import dev.kiamenu.api.MenuContract
-import dev.kiamenu.api.ui.KiaPage
+import dev.cabinwright.api.contract.MenuContract
+import dev.cabinwright.api.ui.CarPage
 import java.util.Random
 import kotlin.math.max
 
 /**
- * Edit Menu: Kia's All Menus as an editable grid, like a phone launcher's edit mode.
+ * Edit Menu: All Menus as an editable grid, like a phone launcher's edit mode.
  * Long-press and drag a tile to move it, tap its x to hide it; "Add apps" swaps the grid
  * for the hidden ones, tap one to put it back. Every change is saved and the launcher
  * reloads right away.
  */
-class MenuActivity : KiaPage() {
+class MenuActivity : CarPage() {
     private val handler = Handler()
     private val random = Random()
     private val wiggles = ArrayList<ObjectAnimator>()
@@ -114,7 +114,7 @@ class MenuActivity : KiaPage() {
         items = store.arranged()
         hidden = store.hidden()
         if (items.isEmpty()) {
-            empty.text = "Waiting for the launcher to list its apps. This needs the kia-menu launcher hook installed."
+            empty.text = "Waiting for the launcher to list its apps. This needs the launcher hook installed."
             empty.visibility = View.VISIBLE
         } else {
             empty.visibility = View.GONE
@@ -190,7 +190,7 @@ class MenuActivity : KiaPage() {
 
     private fun isShown(e: MenuStore.Entry) = MenuContract.isProtected(e.key) || e.key !in hidden
 
-    /** A grid cell: Kia-style tile with the icon, label underneath, x badge on the corner. */
+    /** A grid cell: stock-style tile with the icon, label underneath, x badge on the corner. */
     private fun tile(e: MenuStore.Entry): View {
         val cell = cell(e, 1f)
         if (!MenuContract.isProtected(e.key)) {

@@ -1,7 +1,8 @@
 #!/system/bin/sh
-# Replace Kia's launcher (Launcher_WP3) with a rebuilt one: the stock APK, untouched,
+# Replace the stock launcher (Launcher_WP3) with a rebuilt one: the stock APK, untouched,
 # plus our classes.dex. Backs the stock APK + odex up first (verified), then
 # re-optimizes like Leafia does. Does not reboot. Undo: restore-launcher.sh.
+# Run again with a newer hook to replace the installed one: the stock backup stays as it is.
 # usage (as root): install-launcher.sh <new apk>
 export PATH=/data/nemesis/bin:/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin
 export LD_LIBRARY_PATH=/vendor/lib:/system/lib
@@ -21,9 +22,11 @@ fail() { echo "FAIL: $1"; /system/xbin/nemesis remount ro >/dev/null 2>&1; exit 
 
 [ -s "$NEW" ] || fail "no apk at $NEW"
 
-# 1. stock backup, taken once and only from the stock files
+# 1. stock backup, taken once and only from the stock files. With a hook already installed
+# (/system isn't stock any more), the backup taken back then is kept and the hook replaced.
 if [ "$(sum $B/Launcher_WP3.apk)" = $SUM_APK ] && [ "$(sum $B/Launcher_WP3.odex)" = $SUM_ODEX ]; then
     echo "stock backup present"
+    [ "$(sum $APP/Launcher_WP3.apk)" = $SUM_APK ] || echo "replacing the installed hook ($(sum $APP/Launcher_WP3.apk))"
 elif [ "$(sum $APP/Launcher_WP3.apk)" = $SUM_APK ] && [ "$(sum $APP/Launcher_WP3.odex)" = $SUM_ODEX ]; then
     mkdir -p $B || fail "mkdir $B"
     cp $APP/Launcher_WP3.apk $B/ || fail "backup copy"
@@ -42,6 +45,8 @@ cp "$NEW" $APP/Launcher_WP3.apk.new || fail "copy new apk"
 chmod 644 $APP/Launcher_WP3.apk.new
 mv $APP/Launcher_WP3.apk.new $APP/Launcher_WP3.apk || fail "move new apk into place"
 rm -f $APP/Launcher_WP3.odex
+# a cached dex of an earlier hook (when its dexopt had failed) would be stale now
+rm -f /data/dalvik-cache/*Launcher_WP3* 2>/dev/null
 echo "new apk in place ($(sum $APP/Launcher_WP3.apk))"
 if /system/bin/dexopt --preopt $APP/Launcher_WP3.apk $APP/Launcher_WP3.odex "m=y,u=n"; then
     chmod 644 $APP/Launcher_WP3.odex

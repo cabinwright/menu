@@ -1,4 +1,4 @@
-package dev.kiamenu.launcher;
+package dev.cabinwright.launcher;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -8,7 +8,7 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
-import dev.kiamenu.api.MenuContract;
+import dev.cabinwright.api.contract.MenuContract;
 
 /** One custom app's All Menus entry: where its label and icons come from. */
 final class ExtApp {
@@ -46,7 +46,7 @@ final class ExtApp {
         return info.loadIcon(pm);
     }
 
-    /** The app's own disabled icon, or its icon greyed out like Kia's _dis_ icons. */
+    /** The app's own disabled icon, or its icon greyed out like the head unit's _dis_ icons. */
     Drawable disabledIcon() {
         int res = meta(MenuContract.META_ICON_DISABLED);
         if (res != 0) {

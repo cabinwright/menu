@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lays icons out side by side at 3x on Kia's dark background, to compare new icons
+"""Lays icons out side by side at 3x on the head unit's dark background, to compare new icons
 with stock ones.  usage: preview.py <out.png> <row1 png,png,...> [<row2 ...>]"""
 import struct
 import sys

@@ -1,6 +1,6 @@
-# kia-menu
+# Cabinwright menu
 
-Custom apps in Kia's **All Menus**, and an editor to hide and reorder every entry, Kia's
+Custom apps in the head unit's **All Menus**, and an editor to hide and reorder every entry, the head unit's
 own included. Written for the 2023 Kia EV6 head unit (Gen5W, `wp_daudioplus_cvev_us`,
 firmware `CVEV.USA.0000.V015.012.260507`) with [NEMESIS](https://github.com/xwtk/hmg_nemesis)
 installed.
@@ -8,16 +8,16 @@ installed.
 | Part | What it is |
 |---|---|
 | `api/contract` | `MenuContract`: the one class an app needs to show up in All Menus. No dependencies. |
-| `api/ui` | Optional: `KiaPage` (a screen in Kia's look: colours, Mobis font, day/night, keeps clear of the split-screen panel), `SplitScreen`, and `KiaAudio` (makes the app the car's audio source, so its sound reaches the speakers with normal knob volume). |
-| `api/tools` | `build-app.sh` (builds a Kotlin or Java app without Gradle, shrunk by R8), `lint.sh` (ktlint, detekt, ShellCheck and an API 19 compile check), `fetch-tools.sh` (the pinned tools both use) and `kia_icon.py` (Kia-style gradient icons from an SVG path). |
-| `launcher/` | The launcher hook: Kia's stock `Launcher_WP3.apk` plus a `classes.dex` that adds custom apps, applies the layout, and opens Edit Menu from ≡ → Edit Home Icons. |
-| `editor/` | **Edit Menu**: a launcher-style grid. Drag to reorder, ✕ to hide, "Add apps" to bring them back. NEMESIS package `kia.menu`. |
+| `api/ui` | Optional: `CarPage` (a screen in the head unit's look: colours, Mobis font, day/night, keeps clear of the split-screen panel), `SplitScreen`, and `CarAudio` (makes the app the car's audio source, so its sound reaches the speakers with normal knob volume). |
+| `api/tools` | `build-app.sh` (builds a Kotlin or Java app without Gradle, shrunk by R8), `lint.sh` (ktlint, detekt, ShellCheck and an API 19 compile check), `fetch-tools.sh` (the pinned tools both use) and `menu_icon.py` (stock-style gradient icons from an SVG path). |
+| `launcher/` | The launcher hook: the stock `Launcher_WP3.apk` plus a `classes.dex` that adds custom apps, applies the layout, and opens Edit Menu from ≡ → Edit Home Icons. |
+| `editor/` | **Edit Menu**: a launcher-style grid. Drag to reorder, ✕ to hide, "Add apps" to bring them back. NEMESIS package `cabinwright.menu`. |
 
 `launcher/SYMBOLS.md` maps the obfuscated launcher code this relies on.
 
 ## Install
 
-1. **Edit Menu**: download `kia.menu-<version>.zip` from
+1. **Edit Menu**: download `cabinwright.menu-<version>.zip` from
    [Releases](../../releases) and install it with NEMESIS (USB stick or
    `nemesis install --update <zip>` over ADB).
 2. **Launcher hook** (once per firmware): it replaces a `/system` app, so it is built from
@@ -36,7 +36,23 @@ installed.
    `/data/nemesis/backup/ev6.launcher` before touching `/system`. Reboot to load it.
    To undo, run `launcher/restore-launcher.sh` from a USB stick (NEMESIS.data `type=execute`).
 
-Without Edit Menu installed the hook just adds custom apps after Kia's entries.
+Without Edit Menu installed the hook just adds custom apps after the stock entries.
+
+### Moving from kia.menu
+
+This project used to be called kia-menu (NEMESIS package `kia.menu`, app `dev.kiamenu.editor`).
+`cabinwright.menu` is a new package beside it:
+
+1. Install `cabinwright.menu`. On first start Edit Menu imports `/sdcard/kia-menu/layout.json`
+   (read only) into `/sdcard/cabinwright/menu/layout.json`, with the renamed apps' entries
+   (Edit Menu, Tweaks, the store) moved to their new names. It logs `imported the layout`
+   (tag `CabinwrightMenu`).
+2. Remove `kia.menu` (it has no install hooks).
+3. Rebuild the launcher hook from this checkout and run `install-launcher.sh` again: an
+   installed hook only knows the old names (`dev.kiamenu.*`). The script keeps the stock
+   backup in `/data/nemesis/backup/ev6.launcher` and replaces the hook. Reboot.
+
+The store's `docs/migrating-from-kia.md` has the whole switch for a car, with a script.
 
 ## Adding your own app
 
@@ -44,10 +60,10 @@ Without Edit Menu installed the hook just adds custom apps after Kia's entries.
 <activity android:name=".Main">
     <intent-filter>
         <action android:name="android.intent.action.MAIN" />
-        <category android:name="dev.kiamenu.category.ALL_MENUS" />
+        <category android:name="dev.cabinwright.category.ALL_MENUS" />
     </intent-filter>
-    <meta-data android:name="dev.kiamenu.icon" android:resource="@drawable/menu_icon" />
-    <meta-data android:name="dev.kiamenu.icon_disabled" android:resource="@drawable/menu_icon_dis" />
+    <meta-data android:name="dev.cabinwright.icon" android:resource="@drawable/menu_icon" />
+    <meta-data android:name="dev.cabinwright.icon_disabled" android:resource="@drawable/menu_icon_dis" />
 </activity>
 ```
 
@@ -61,10 +77,10 @@ api/tools/build-app.sh --ui <app dir> out.apk   # --ui also compiles in api/ui
 `src/` can be Kotlin, Java or both. The app is compiled against Android 4.4's `android.jar`
 (API 19, the head unit's), so a newer call is a build error, then shrunk and optimized by R8.
 Anything reached only by reflection needs a keep rule in `<app dir>/proguard-rules.pro`;
-`KIAMENU_MAP=<file>` keeps R8's name map for reading stack traces. In Kotlin, avoid function
+`CABINWRIGHT_MAP=<file>` keeps R8's name map for reading stack traces. In Kotlin, avoid function
 references (`::foo`): they pull in Kotlin's reflection classes.
 
-Send `dev.kiamenu.action.RELOAD` to make All Menus pick it up. See `MenuContract` for the rest.
+Send `dev.cabinwright.action.RELOAD` to make All Menus pick it up. See `MenuContract` for the rest.
 [ev6-fixes](https://github.com/hazptr/ev6-fixes) is a complete example.
 
 ## Building
@@ -72,11 +88,11 @@ Send `dev.kiamenu.action.RELOAD` to make All Menus pick it up. See `MenuContract
 Needs a JDK (11), Python 3, curl, and the Android SDK's `build-tools;29.0.2` (`ANDROID_HOME`,
 or `~/Library/Android/sdk`). Everything else (Kotlin, R8, Android 4.4's `android.jar`, the lint
 tools) is downloaded once by `api/tools/fetch-tools.sh`, pinned and checked by sha256, into
-`~/.cache/kia-menu-tools` (or `KIAMENU_TOOLS`).
+`~/.cache/cabinwright-tools` (or `CABINWRIGHT_TOOLS`).
 
 ```sh
-./build.sh                 # dist/kia.menu.zip, and dist/kia-menu-editor.map (R8's name map)
-launcher/check-hook.sh     # compiles the hook without Kia's files
+./build.sh                 # dist/cabinwright.menu.zip, and dist/cabinwright.menu.map (R8's name map)
+launcher/check-hook.sh     # compiles the hook without the manufacturer's files
 api/tools/lint.sh          # lint everything; --fix reformats the Kotlin
 ```
 
@@ -91,18 +107,18 @@ into the launcher hook) and the launcher hook itself, which stay Java.
 - **ktlint** on `.kt`/`.kts` (`--fix` rewrites them), settings in `api/tools/lint/editorconfig`;
 - **detekt** on the same files with `api/tools/lint/detekt.yml` on top of its defaults. A
   deliberately ignored exception is named `ignored`; `probeHidden` in `api/ui` is the one place
-  that falls back on any failure, for reflection into Kia's hidden APIs;
+  that falls back on any failure, for reflection into the head unit's hidden APIs;
 - **ShellCheck** on `.sh`, with `api/tools/lint/shellcheckrc`. Build scripts are POSIX `sh`;
   on-car scripts (`#!/system/bin/sh`, or sourced with no `#!`) are checked as ksh, nearest to
   Android 4.4's mksh (`local` and `print` are fine; toolbox has no sed, awk, head, tail or tr,
   which ShellCheck can't know);
 - **javac** `-Xlint:all -Werror` against Android 4.4's `android.jar` for any remaining Java,
-  with the kia-menu API and the repo's Kotlin on the classpath.
+  with the Cabinwright API and the repo's Kotlin on the classpath.
 
-It fails if any check does. Other kia-menu-based repos use it from their kia-menu checkout:
-`kia-menu/api/tools/lint.sh <repo>`.
+It fails if any check does. Other Cabinwright repos use it from their menu checkout:
+`menu/api/tools/lint.sh <repo>`.
 
-Builds are signed with the debug key unless `KIAMENU_KEYSTORE` / `KIAMENU_KEYSTORE_PASS` are
+Builds are signed with the debug key unless `CABINWRIGHT_KEYSTORE` / `CABINWRIGHT_KEYSTORE_PASS` are
 set. CI lints and builds every push; pushing a tag `v<version>` (matching
 `package/NEMESIS.data`) publishes a release with the R8 map alongside the zip.
 

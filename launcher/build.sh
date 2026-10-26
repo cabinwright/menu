@@ -1,8 +1,8 @@
 #!/bin/sh
-# Builds the patched Kia launcher: the stock Launcher_WP3.apk, untouched (Kia's signed
+# Builds the patched stock launcher: the stock Launcher_WP3.apk, untouched (the head unit's signed
 # manifest and resources), plus a classes.dex with the custom-apps hook. Only the
 # manifest is signature-checked for /system apps on this firmware, as with Leafia's
-# patched apps. Kia's files are inputs only and never stored here.
+# patched apps. The manufacturer's files are inputs only and never stored here.
 #
 # usage: launcher/build.sh <stock dir> [out apk]
 #   <stock dir> holds Launcher_WP3.apk, Launcher_WP3.odex and framework/ from the car
@@ -41,7 +41,7 @@ fetch smali-2.5.2.jar 9544299578b16f771d8aa8eaefe0d3718ca03478c16f3c356f2fcf1366
 WORK=$(mktemp -d)
 if [ "$(uname)" = Darwin ]; then
     trap 'hdiutil detach -quiet "$WORK/cs" 2>/dev/null; rm -rf "$WORK"' EXIT
-    hdiutil create -quiet -size 400m -fs "Case-sensitive APFS" -volname kiamenu "$WORK/cs.dmg"
+    hdiutil create -quiet -size 400m -fs "Case-sensitive APFS" -volname cabinwright "$WORK/cs.dmg"
     hdiutil attach -quiet -nobrowse -mountpoint "$WORK/cs" "$WORK/cs.dmg"
 else
     trap 'rm -rf "$WORK"' EXIT

@@ -1,11 +1,11 @@
 [nemesis]
-version=1.2
-id=kia.menu
-name=Kia menu: Edit Menu
+version=1.3
+id=cabinwright.menu
+name=Edit Menu
 types=application
 
 [app.0]
 kind=apk
-path=app/kia-menu-editor.apk
-package=dev.kiamenu.editor
-component=dev.kiamenu.editor/.MenuActivity
+path=app/edit-menu.apk
+package=dev.cabinwright.menu
+component=dev.cabinwright.menu/.MenuActivity

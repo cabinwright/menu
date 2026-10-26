@@ -1,10 +1,10 @@
-package dev.kiamenu.api.ui
+package dev.cabinwright.api.ui
 
 import android.content.Context
 import java.lang.reflect.Proxy
 
 /**
- * Kia's split-screen panel (com.mobis.splitscreen.right) is a window drawn over the
+ * The stock split-screen panel (com.mobis.splitscreen.right) is a window drawn over the
  * right of the screen, from x=1276. Stock apps ask the framework's
  * com.hkmc.split.manager.SplitScreenManager (automotive.jar, on every app's boot
  * classpath) whether it is on, and get onChangeOnOff callbacks. It isn't in the SDK,

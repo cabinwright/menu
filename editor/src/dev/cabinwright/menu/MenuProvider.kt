@@ -1,4 +1,4 @@
-package dev.kiamenu.editor
+package dev.cabinwright.menu
 
 import android.content.ContentProvider
 import android.content.ContentValues
@@ -8,7 +8,7 @@ import android.os.Binder
 import android.os.Bundle
 import android.os.Process
 import android.util.Log
-import dev.kiamenu.api.MenuContract
+import dev.cabinwright.api.contract.MenuContract
 
 /**
  * MenuContract.EDITOR_URI, used by the launcher hook through call():

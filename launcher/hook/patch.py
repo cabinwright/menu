@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Applies the custom-apps hook to a deodexed Launcher_WP3 smali tree (in place).
 
-1. Reroutes the launcher's resource-id lookups through dev.kiamenu.launcher.ExtRes:
+1. Reroutes the launcher's resource-id lookups through dev.cabinwright.launcher.ExtRes:
    each `invoke-virtual {receiver, id}, <Class>;->method(I)...` becomes
    `invoke-static {receiver, id}, ExtRes;->method(<Class>;I)...` - same registers and
    result, so it is a one-for-one swap. ExtRes passes real ids straight through.
-2. Calls ExtApps.addTo(list, owner) in AllMenuEntryList.load() right after Kia's
+2. Calls ExtApps.addTo(list, owner) in AllMenuEntryList.load() right after the head unit's
    region list is built (adds custom apps).
 3. Calls ExtApps.arrange(items, context) wherever All Menus' drawn Item list is final
    (applies Edit Menu's layout), on both of the loader's paths:
@@ -13,11 +13,11 @@
      on the EV6 (the loader's list starts out null). Hooked before its return-void.
    - the loader's merge path (view/aV doInBackground, :cond_261), inside its lock.
    v0/v1 are free at both points.
-4. Adds the broadcast dev.kiamenu.action.RELOAD to All Menus' receiver (view/aY registers
+4. Adds the broadcast dev.cabinwright.action.RELOAD to All Menus' receiver (view/aY registers
    it, view/br handles it): a full rebuild via AllMenuView.t(true), which runs the loader
-   and so step 3. Kia's own allmenu.UPDATE only refreshes the existing items.
+   and so step 3. The head unit's own allmenu.UPDATE only refreshes the existing items.
 5. Calls EditScreen.redirect(context, intent) right before the launcher's startActivity
-   at the two places it opens Kia's All Menus edit screen (HomeSetting AllMenuEdit, the
+   at the two places it opens All Menus edit screen (HomeSetting AllMenuEdit, the
    options menu's "Edit Home Icons"): Launcher.aX(I) and AllMenuView.gG(). It swaps in
    Edit Menu when that is installed.
 
@@ -28,8 +28,8 @@ import re
 import sys
 from pathlib import Path
 
-EXT = "Ldev/kiamenu/launcher/ExtRes;"
-OURS = "dev/kiamenu/"
+EXT = "Ldev/cabinwright/launcher/ExtRes;"
+OURS = "dev/cabinwright/"
 
 # (receiver class, method, original descriptor tail, static descriptor)
 REROUTES = [
@@ -51,7 +51,7 @@ LOAD_FILE = "com/android/launcher3/view/a/g.smali"
 LOAD_ANCHOR = ("    invoke-virtual {v0}, Lcom/android/launcher3/view/a/au;->hf()Ljava/util/List;\n"
                "\n"
                "    move-result-object v0\n")
-LOAD_HOOK = ("\n    invoke-static {v0, p0}, Ldev/kiamenu/launcher/ExtApps;"
+LOAD_HOOK = ("\n    invoke-static {v0, p0}, Ldev/cabinwright/launcher/ExtApps;"
              "->addTo(Ljava/util/List;Lcom/android/launcher3/view/a/g;)V\n")
 
 
@@ -67,7 +67,7 @@ ARRANGE_HOOK = ("    :cond_261\n"
                 "    iget-object v1, p0, Lcom/android/launcher3/view/aV;->tB:Lcom/android/launcher3/view/aY;\n"
                 "    invoke-static {v1}, Lcom/android/launcher3/view/aY;->q(Lcom/android/launcher3/view/aY;)Landroid/content/Context;\n"
                 "    move-result-object v1\n"
-                "    invoke-static {v0, v1}, Ldev/kiamenu/launcher/ExtApps;"
+                "    invoke-static {v0, v1}, Ldev/cabinwright/launcher/ExtApps;"
                 "->arrange(Ljava/util/ArrayList;Landroid/content/Context;)V\n\n")
 
 ADDITEM_FILE = "com/android/launcher3/view/aY.smali"
@@ -83,11 +83,11 @@ ADDITEM_HOOK = ("    goto :goto_91\n"
                 "    iget-object v0, p0, Lcom/android/launcher3/view/aY;->rB:Ljava/util/ArrayList;\n"
                 "    invoke-static {p0}, Lcom/android/launcher3/view/aY;->q(Lcom/android/launcher3/view/aY;)Landroid/content/Context;\n"
                 "    move-result-object v1\n"
-                "    invoke-static {v0, v1}, Ldev/kiamenu/launcher/ExtApps;"
+                "    invoke-static {v0, v1}, Ldev/cabinwright/launcher/ExtApps;"
                 "->arrange(Ljava/util/ArrayList;Landroid/content/Context;)V\n"
                 "    return-void\n")
 
-RELOAD = "dev.kiamenu.action.RELOAD"
+RELOAD = "dev.cabinwright.action.RELOAD"
 FILTER_FILE = "com/android/launcher3/view/aY.smali"
 FILTER_ANCHOR = ('    const-string v2, "com.hkmc.system.app.allmenu.UPDATE"\n'
                  "\n"
@@ -101,14 +101,14 @@ RECEIVER_ANCHOR = ("    .line 904\n"
 RECEIVER_HOOK = ('    const-string v1, "%s"\n'
                  "    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n"
                  "    move-result v1\n"
-                 "    if-eqz v1, :kiamenu_not_reload\n"
+                 "    if-eqz v1, :cabinwright_not_reload\n"
                  "    iget-object v1, p0, Lcom/android/launcher3/view/br;->tB:Lcom/android/launcher3/view/aY;\n"
                  "    const/4 v2, 0x1\n"
                  "    invoke-virtual {v1, v2}, Lcom/android/launcher3/view/aY;->t(Z)V\n"
                  "    goto :goto_a\n"
-                 "    :kiamenu_not_reload\n\n" % RELOAD)
+                 "    :cabinwright_not_reload\n\n" % RELOAD)
 
-REDIRECT = ("    invoke-static {%s, %s}, Ldev/kiamenu/launcher/EditScreen;"
+REDIRECT = ("    invoke-static {%s, %s}, Ldev/cabinwright/launcher/EditScreen;"
             "->redirect(Landroid/content/Context;Landroid/content/Intent;)V\n\n")
 # Launcher.aX(I): one startActivity shared by all its menu actions; v0 is the intent
 EDIT_LAUNCHER_FILE = "com/android/launcher3/view/Launcher.smali"

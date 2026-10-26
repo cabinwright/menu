@@ -1,7 +1,7 @@
-# detekt settings for kia-menu-style repos (lint.sh passes this file on top of detekt's
+# detekt settings for Cabinwright repos (lint.sh passes this file on top of detekt's
 # defaults). Bugs and complexity stay on; rules that don't fit views built in code are off.
 # A deliberately ignored exception is named `ignored` (or `expected`), which the exception
-# rules accept: probing Kia's hidden APIs by reflection falls back on any failure.
+# rules accept: probing the head unit's hidden APIs by reflection falls back on any failure.
 complexity:
   TooManyFunctions:
     active: false          # activities and view helpers
@@ -9,7 +9,7 @@ complexity:
     constructorThreshold: 8
 style:
   MagicNumber:
-    active: false          # dp sizes and Kia's measured colours
+    active: false          # dp sizes and the measured stock colours
   ReturnCount:
     max: 4
     excludeGuardClauses: true   # `val x = ... ?: return` checks up front

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Makes All Menus icons in Kia's style from a filled SVG path.
+"""Makes All Menus icons in the stock style from a filled SVG path.
 
-Kia's Launcher_WP3 icons (99x99 px, hdpi) are solid glyphs filled with a vertical
+The head unit's Launcher_WP3 icons (99x99 px, hdpi) are solid glyphs filled with a vertical
 gradient over the glyph's own height, with separate day and night colours, plus a flat
 translucent "disabled" version of each. The colours below were measured from the stock
 icons (EV, Setup, Phone): see README.md.
 
-usage: kia_icon.py <glyph.svgpath> <res dir> <name>
+usage: menu_icon.py <glyph.svgpath> <res dir> <name>
   <glyph.svgpath>  an SVG path "d" string in a 24x24 view box (filled, nonzero rule)
   writes <res>/drawable-hdpi/<name>.png, <name>_dis.png and the same in drawable-night-hdpi
 
@@ -21,7 +21,7 @@ import zlib
 from pathlib import Path
 
 SIZE = 99
-# glyph box inside the 99 px icon, as in Kia's (glyphs span about y 21-80)
+# glyph box inside the 99 px icon, as in the head unit's (glyphs span about y 21-80)
 BOX = (17.0, 20.5, 82.0, 80.5)
 SS = 4
 

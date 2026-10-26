@@ -1,10 +1,10 @@
 #!/bin/sh
 # Downloads the pinned tools that build-app.sh and lint.sh use (Kotlin, R8, Android 4.4's
 # android.jar, ktlint, detekt, shellcheck), once, into
-# ${KIAMENU_TOOLS:-~/.cache/kia-menu-tools}, and checks them against fixed sha256s.
+# ${CABINWRIGHT_TOOLS:-~/.cache/cabinwright-tools}, and checks them against fixed sha256s.
 # Prints the tools directory.
 set -e
-DIR=${KIAMENU_TOOLS:-$HOME/.cache/kia-menu-tools}
+DIR=${CABINWRIGHT_TOOLS:-$HOME/.cache/cabinwright-tools}
 KOTLIN=2.0.21
 KOTLIN_SHA=0352c0a45bd22f80f6b26e485cd04da8047baa5de54865281fb9f89a4a7bcf2a
 R8=8.5.35

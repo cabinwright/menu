@@ -1,4 +1,4 @@
-package dev.kiamenu.launcher;
+package dev.cabinwright.launcher;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Lets the launcher draw custom apps with their own icons and labels.
  *
- * Kia's All Menus code only knows launcher resource ids. Custom apps get ids in a range
+ * All Menus code only knows launcher resource ids. Custom apps get ids in a range
  * no real resource uses (package id 0x7e; the launcher is 0x7f, the framework 0x01), and
  * the patch routes the launcher's resource lookups through here: ids in that range come
  * from the custom app, everything else goes straight to the launcher's own Resources.

@@ -1,4 +1,4 @@
-package dev.kiamenu.editor
+package dev.cabinwright.menu
 
 import android.content.ComponentName
 import android.content.Context
@@ -6,12 +6,12 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
-import dev.kiamenu.api.MenuContract
+import dev.cabinwright.api.contract.MenuContract
 
 /**
- * Names and icons for menu entries, as All Menus shows them: Kia's entries from the
+ * Names and icons for menu entries, as All Menus shows them: the stock entries from the
  * launcher's own resources (so day/night variants match), custom apps from their
- * kia-menu meta-data.
+ * Cabinwright meta-data.
  */
 internal class EntryLook(context: Context) {
     private val pm: PackageManager = context.packageManager

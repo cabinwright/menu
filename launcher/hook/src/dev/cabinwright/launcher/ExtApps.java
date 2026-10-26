@@ -1,4 +1,4 @@
-package dev.kiamenu.launcher;
+package dev.cabinwright.launcher;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +12,7 @@ import android.util.Log;
 import com.android.launcher3.view.a.Q;
 import com.android.launcher3.view.a.g;
 
-import dev.kiamenu.api.MenuContract;
+import dev.cabinwright.api.contract.MenuContract;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -27,19 +27,19 @@ import java.util.Set;
 /**
  * The launcher hook's two entry points (see SYMBOLS.md for the launcher classes):
  *
- * {@link #addTo} - from AllMenuEntryList.load(), right after Kia's region list is built:
+ * {@link #addTo} - from AllMenuEntryList.load(), right after the head unit's region list is built:
  * appends an entry for every installed app that opts in (see MenuContract).
  *
  * {@link #arrange} - from the All Menus loader (AllMenuView's task), once it has merged
  * the entries into the Item list it draws, inside its lock: reports that list to Edit
  * Menu and applies Edit Menu's layout to it (hidden items out, listed ones in order,
- * the rest after them as Kia had them, blank "Empty view" cells last).
+ * the rest after them as the launcher had them, blank "Empty view" cells last).
  *
  * Both run on the launcher's loader thread. Nothing here may throw into the launcher: on
- * any problem the menu is left as Kia built it.
+ * any problem the menu is left as the launcher built it.
  */
 public final class ExtApps {
-    static final String TAG = "KiaMenu";
+    static final String TAG = "CabinwrightMenu";
 
     private ExtApps() {
     }
@@ -120,7 +120,7 @@ public final class ExtApps {
         }
     }
 
-    /** Tells Edit Menu what's in the menu, so it can show Kia's entries too. */
+    /** Tells Edit Menu what's in the menu, so it can show the stock entries too. */
     private static void report(Context context, List<MenuItem> items) {
         int n = items.size();
         String[] keys = new String[n];

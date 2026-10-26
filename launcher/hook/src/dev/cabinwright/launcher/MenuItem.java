@@ -1,6 +1,6 @@
-package dev.kiamenu.launcher;
+package dev.cabinwright.launcher;
 
-import dev.kiamenu.api.MenuContract;
+import dev.cabinwright.api.contract.MenuContract;
 
 import java.lang.reflect.Field;
 

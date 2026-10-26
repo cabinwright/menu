@@ -29,8 +29,8 @@ jobs:
       # Kotlin, R8, android-19.jar, ktlint, detekt, shellcheck: pinned in fetch-tools.sh
       - uses: actions/cache@v4
         with:
-          path: ~/.cache/kia-menu-tools
-          key: kia-menu-tools-${{ runner.os }}-${{ hashFiles('api/tools/fetch-tools.sh') }}
+          path: ~/.cache/cabinwright-tools
+          key: cabinwright-tools-${{ runner.os }}-${{ hashFiles('api/tools/fetch-tools.sh') }}
 
       - name: Tools
         run: sh api/tools/fetch-tools.sh
@@ -40,11 +40,11 @@ jobs:
 
       - name: Signing key
         env:
-          KEYSTORE_B64: ${{ secrets.KIAMENU_KEYSTORE_B64 }}
+          KEYSTORE_B64: ${{ secrets.CABINWRIGHT_KEYSTORE_B64 }}
         run: |
           if [ -n "$KEYSTORE_B64" ]; then
             echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
-            echo "KIAMENU_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "CABINWRIGHT_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
           else
             # forks and PRs from them: a throwaway debug key
             mkdir -p ~/.android
@@ -63,16 +63,16 @@ jobs:
 
       - name: Build
         env:
-          KIAMENU_KEYSTORE_PASS: ${{ secrets.KIAMENU_KEYSTORE_PASS }}
+          CABINWRIGHT_KEYSTORE_PASS: ${{ secrets.CABINWRIGHT_KEYSTORE_PASS }}
         run: |
           sh build.sh
           sh launcher/check-hook.sh
-          mv dist/kia.menu.zip "dist/kia.menu-v$VERSION.zip"
-          mv dist/kia-menu-editor.map "dist/kia-menu-editor-v$VERSION.map"
+          mv dist/cabinwright.menu.zip "dist/cabinwright.menu-v$VERSION.zip"
+          mv dist/cabinwright.menu.map "dist/cabinwright.menu-v$VERSION.map"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: kia.menu-v${{ env.VERSION }}
+          name: cabinwright.menu-v${{ env.VERSION }}
           path: |
             dist/*.zip
             dist/*.map
@@ -83,11 +83,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cat > "$RUNNER_TEMP/notes.md" <<NOTES
-          **Edit Menu** (NEMESIS package \`kia.menu\` $VERSION): install \`kia.menu-v$VERSION.zip\` with NEMESIS
+          **Edit Menu** (NEMESIS package \`cabinwright.menu\` $VERSION): install \`cabinwright.menu-v$VERSION.zip\` with NEMESIS
           (USB stick, or \`nemesis install --update <zip>\` over ADB).
-          \`kia-menu-editor-v$VERSION.map\` is R8's name map, for reading its stack traces (retrace).
+          \`cabinwright.menu-v$VERSION.map\` is R8's name map, for reading its stack traces (retrace).
 
           The launcher hook is built from your own car's stock launcher: see the README.
           NOTES
-          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.map --title "kia-menu $GITHUB_REF_NAME" \
+          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.map --title "Cabinwright menu $GITHUB_REF_NAME" \
             --notes-file "$RUNNER_TEMP/notes.md" --generate-notes

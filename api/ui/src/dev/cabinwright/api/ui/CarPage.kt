@@ -1,4 +1,4 @@
-package dev.kiamenu.api.ui
+package dev.cabinwright.api.ui
 
 import android.app.Activity
 import android.content.Context
@@ -19,15 +19,15 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
- * Base for kia-menu app screens: a page in Kia's own look (colours and the Mobis font
- * sampled from the stock Setup screen) that keeps clear of Kia's split-screen panel (left
+ * Base for Cabinwright app screens: a page in the head unit's own look (colours and the Mobis font
+ * sampled from the stock Setup screen) that keeps clear of the stock split-screen panel (left
  * of it while it's on, full width with room for its handle while it's off), plus small
  * view helpers. Subclasses add their views to [page].
  */
 // BG, TILE...: theme colours, named like the constants they are for a page's lifetime
 @Suppress("ktlint:standard:property-naming")
-abstract class KiaPage : Activity() {
-    // Kia's colours, measured from the stock Setup screen (CVEV.USA 260507) in each mode.
+abstract class CarPage : Activity() {
+    // The stock colours, measured from the stock Setup screen (CVEV.USA 260507) in each mode.
     // The car switches day/night through the standard UI night mode (headlamps or the
     // Display setting), which recreates the activity, so these are picked in onCreate.
     /** Page background. */
@@ -108,7 +108,7 @@ abstract class KiaPage : Activity() {
     }
 
     /**
-     * Adds a slim title row (Kia's status bar already sits above every app, so this stays
+     * Adds a slim title row (the head unit's status bar already sits above every app, so this stays
      * small): the title on the left, then whatever the caller adds, pushed to the right.
      */
     protected fun headerBar(title: String): LinearLayout {
@@ -121,15 +121,15 @@ abstract class KiaPage : Activity() {
         return row
     }
 
-    /** A Kia button or panel: flat dark fill with a thin lighter edge. */
+    /** A stock button or panel: flat dark fill with a thin lighter edge. */
     protected fun surface(radius: Int): Drawable =
         rounded(TILE, radius).apply { setStroke(max(1, dp(1) * 2 / 3), EDGE) }
 
-    /** The raised square Kia puts behind menu icons. */
+    /** The raised square the launcher puts behind menu icons. */
     protected fun iconTile(radius: Int): Drawable =
         rounded(ICON_TILE, radius).apply { setStroke(max(1, dp(1) * 2 / 3), ICON_TILE_EDGE) }
 
-    /** A Kia-style button: text in a [surface]. */
+    /** A stock-style button: text in a [surface]. */
     protected fun button(label: String, click: View.OnClickListener): TextView {
         val b = text(label, 16, TEXT, false)
         b.gravity = Gravity.CENTER
@@ -170,10 +170,10 @@ abstract class KiaPage : Activity() {
     protected fun dp(v: Int): Int = (v * resources.displayMetrics.density).roundToInt()
 
     companion object {
-        /** Kia's highlight teal (an active button's glyph), the same day and night. */
+        /** The head unit's highlight teal (an active button's glyph), the same day and night. */
         const val ACCENT = 0xFF17BEB0.toInt()
 
-        /** Kia's day icon gradient, top to bottom (measured from the stock icons). */
+        /** The head unit's day icon gradient, top to bottom (measured from the stock icons). */
         const val ICON_START = 0xFF34E0D5.toInt()
         const val ACCENT_END = 0xFF847FDC.toInt()
         const val GOOD = 0xFF2ECC71.toInt()
@@ -191,10 +191,10 @@ abstract class KiaPage : Activity() {
         @JvmStatic
         fun isNight(context: Context): Boolean {
             val mode = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-            return mode != Configuration.UI_MODE_NIGHT_NO // Kia's default is night
+            return mode != Configuration.UI_MODE_NIGHT_NO // the head unit's default is night
         }
 
-        /** Kia's UI font (Mobis), falling back to the system one. */
+        /** The head unit's UI font (Mobis), falling back to the system one. */
         @JvmStatic
         fun font(isBold: Boolean): Typeface {
             if (regular == null) {

@@ -1,4 +1,4 @@
-package dev.kiamenu.editor
+package dev.cabinwright.menu
 
 import android.animation.LayoutTransition
 import android.content.Context

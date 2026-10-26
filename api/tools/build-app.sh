@@ -1,15 +1,16 @@
 #!/bin/sh
-# Builds a kia-menu app (API 19, Java and/or Kotlin, no Gradle) with the Android SDK tools,
+# Builds a Cabinwright app (API 19, Java and/or Kotlin, no Gradle) with the Android SDK tools,
 # shrunk and optimized by R8. Kotlin and R8 come from fetch-tools.sh (pinned, checksummed).
 # An app folder has AndroidManifest.xml, src/, res/ and glyph.svgpath; the glyph becomes
-# its Kia-style All Menus icons (@drawable/menu_icon and menu_icon_dis, day and night).
-# The kia-menu API is compiled in: api/contract always, api/ui with --ui.
+# its stock-style All Menus icons (@drawable/menu_icon and menu_icon_dis, day and night).
+# The Cabinwright API is compiled in: api/contract always, api/ui with --ui.
 # R8 keeps the manifest's components (aapt's rules) and api/tools/app-rules.pro; an app adds
 # its own keep rules in <app dir>/proguard-rules.pro (anything reached by reflection).
-# KIAMENU_MAP=<file> keeps R8's name map, for reading stack traces (retrace).
+# CABINWRIGHT_MAP=<file> keeps R8's name map, for reading stack traces (retrace).
 # usage: build-app.sh [--ui] <app dir> <output apk>
-# Signs with the Android debug key unless KIAMENU_KEYSTORE is set (release builds):
-#   KIAMENU_KEYSTORE=<.jks> KIAMENU_KEYSTORE_PASS=<password> [KIAMENU_KEY_ALIAS=kia-menu]
+# Signs with the Android debug key unless CABINWRIGHT_KEYSTORE is set (release builds):
+#   CABINWRIGHT_KEYSTORE=<.jks> CABINWRIGHT_KEYSTORE_PASS=<password> [CABINWRIGHT_KEY_ALIAS=<alias>]
+# (the alias can be left out when the keystore holds one key)
 # NEMESIS reinstalls an app on update, so a change of key between builds doesn't matter.
 set -e
 TOOLS=$(cd "$(dirname "$0")" && pwd)
@@ -32,7 +33,7 @@ trap 'rm -rf "$BUILD"' EXIT
 mkdir -p "$BUILD/classes" "$BUILD/dex" "$BUILD/res"
 
 [ -d "$APP/res" ] && cp -R "$APP/res/." "$BUILD/res/"
-python3 -I "$TOOLS/kia_icon.py" "$APP/glyph.svgpath" "$BUILD/res" menu_icon
+python3 -I "$TOOLS/menu_icon.py" "$APP/glyph.svgpath" "$BUILD/res" menu_icon
 
 # resources first: aapt also writes keep rules for the manifest's components
 "$BT/aapt" package -f -M "$APP/AndroidManifest.xml" -S "$BUILD/res" -I "$JAR" -F "$BUILD/unsigned.apk" \
@@ -58,18 +59,18 @@ if [ -f "$APP/proguard-rules.pro" ]; then set -- "$@" --pg-conf "$APP/proguard-r
 set -- "$@" "$BUILD/classes.jar"
 if [ -s "$BUILD/kt.txt" ]; then set -- "$@" "$STDLIB"; fi
 "$JDK/bin/java" -cp "$FT/r8.jar" com.android.tools.r8.R8 --release --min-api 19 --lib "$JAR" \
-    --pg-map-output "${KIAMENU_MAP:-$BUILD/r8.map}" --output "$BUILD/dex" "$@"
+    --pg-map-output "${CABINWRIGHT_MAP:-$BUILD/r8.map}" --output "$BUILD/dex" "$@"
 
 (cd "$BUILD/dex" && "$BT/aapt" add "$BUILD/unsigned.apk" classes.dex >/dev/null)
 "$BT/zipalign" -f 4 "$BUILD/unsigned.apk" "$BUILD/aligned.apk"
 mkdir -p "$(dirname "$OUT")"
-if [ -n "$KIAMENU_KEYSTORE" ]; then
-    KS=$KIAMENU_KEYSTORE ALIAS=${KIAMENU_KEY_ALIAS:-kia-menu}
-    export KIAMENU_KEYSTORE_PASS
-    PASS=env:KIAMENU_KEYSTORE_PASS
+if [ -n "$CABINWRIGHT_KEYSTORE" ]; then
+    KS=$CABINWRIGHT_KEYSTORE ALIAS=$CABINWRIGHT_KEY_ALIAS
+    export CABINWRIGHT_KEYSTORE_PASS
+    PASS=env:CABINWRIGHT_KEYSTORE_PASS
 else
     KS=$HOME/.android/debug.keystore ALIAS=androiddebugkey PASS=pass:android
 fi
-"$BT/apksigner" sign --ks "$KS" --ks-pass "$PASS" --key-pass "$PASS" --ks-key-alias "$ALIAS" \
+"$BT/apksigner" sign --ks "$KS" --ks-pass "$PASS" --key-pass "$PASS" ${ALIAS:+--ks-key-alias "$ALIAS"} \
     --out "$OUT" "$BUILD/aligned.apk"
 echo "$OUT"

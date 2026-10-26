@@ -1,26 +1,26 @@
 #!/bin/sh
-# Lints a kia-menu-style repo (this one, kia-store, kia-tweaks...) with the pinned tools
+# Lints a Cabinwright repo (this one, store, tweaks...) with the pinned tools
 # from fetch-tools.sh and the shared settings in api/tools/lint/:
 #   - ktlint: formatting of the .kt/.kts files (--fix rewrites them)
 #   - detekt: static analysis of the same files
 #   - ShellCheck: every .sh; on-car scripts (#!/system/bin/sh, or no #! as when sourced)
 #     are checked as ksh, the nearest dialect to Android 4.4's mksh
 #   - javac: any remaining Java, -Xlint:all -Werror against Android 4.4's android.jar
-#     (with the kia-menu API, and the repo's Kotlin, on the classpath)
+#     (with the Cabinwright API, and the repo's Kotlin, on the classpath)
 # Files are the repo's tracked and new ones (git ls-files), so build output, dist/ and
-# ignored or nested checkouts (CI's kia-menu/) are left out; outside git, a find that
+# ignored or nested checkouts (CI's menu/) are left out; outside git, a find that
 # skips dist/ and build/. Runs every check, then fails if any did.
-# usage: lint.sh [--fix] [repo dir]      (the repo defaults to this kia-menu checkout)
+# usage: lint.sh [--fix] [repo dir]      (the repo defaults to this menu checkout)
 set -e
 TOOLS=$(cd "$(dirname "$0")" && pwd)
-KIAMENU=$(cd "$TOOLS/../.." && pwd)
+MENU_ROOT=$(cd "$TOOLS/../.." && pwd)
 CONF=$TOOLS/lint
 FIX=
 if [ "$1" = --fix ]; then
     FIX=1
     shift
 fi
-REPO=$(cd "${1:-$KIAMENU}" && pwd)
+REPO=$(cd "${1:-$MENU_ROOT}" && pwd)
 JDK=${JAVA_HOME:-$(/usr/libexec/java_home -v 11)}
 JAVA=$JDK/bin/java
 FT=$(sh "$TOOLS/fetch-tools.sh")
@@ -84,12 +84,12 @@ run_shellcheck() {
 run_javac() {
     jar=$FT/android-19.jar
     stdlib=$FT/kotlinc/lib/kotlin-stdlib.jar
-    # Kotlin the Java may use: the repo's own, and kia-menu's API when linting another repo
+    # Kotlin the Java may use: the repo's own, and Cabinwright's API when linting another repo
     cp "$WORK/kt.txt" "$WORK/kt-all.txt"
     : >"$WORK/java-ref.txt"
-    if [ "$REPO" != "$KIAMENU" ]; then
-        find "$KIAMENU/api" -name '*.kt' >>"$WORK/kt-all.txt"
-        find "$KIAMENU/api/contract/src" -name '*.java' >"$WORK/java-ref.txt"
+    if [ "$REPO" != "$MENU_ROOT" ]; then
+        find "$MENU_ROOT/api" -name '*.kt' >>"$WORK/kt-all.txt"
+        find "$MENU_ROOT/api/contract/src" -name '*.java' >"$WORK/java-ref.txt"
     fi
     mkdir -p "$WORK/kt-classes" "$WORK/java-classes"
     if grep -q '\.kt$' "$WORK/kt-all.txt"; then
@@ -99,7 +99,7 @@ run_javac() {
             -classpath "$jar" -d "$WORK/kt-classes" "@$WORK/kt-src.txt" || return 1
     fi
     "$JDK/bin/javac" -source 8 -target 8 -bootclasspath "$jar" -Xlint:all -Werror -proc:none -implicit:class \
-        -sourcepath "$KIAMENU/api/contract/src" -classpath "$WORK/kt-classes:$stdlib" \
+        -sourcepath "$MENU_ROOT/api/contract/src" -classpath "$WORK/kt-classes:$stdlib" \
         -d "$WORK/java-classes" "@$WORK/java.txt"
 }
 

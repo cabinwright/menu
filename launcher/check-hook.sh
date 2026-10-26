@@ -1,6 +1,6 @@
 #!/bin/sh
-# Checks the launcher hook without Kia's files (as CI does): compiles it against the
-# stubs and the kia-menu API, and checks patch.py parses. Building the real launcher
+# Checks the launcher hook without the manufacturer's files (as CI does): compiles it against the
+# stubs and the Cabinwright API, and checks patch.py parses. Building the real launcher
 # needs the stock APK from the car: see build.sh.
 set -e
 HERE=$(cd "$(dirname "$0")" && pwd)

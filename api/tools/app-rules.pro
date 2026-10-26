@@ -1,4 +1,4 @@
-# R8 rules for every kia-menu app (build-app.sh). Full mode: shrink, optimize, obfuscate.
+# R8 rules for every Cabinwright app (build-app.sh). Full mode: shrink, optimize, obfuscate.
 -allowaccessmodification
 -repackageclasses
 # readable stack traces with the .map next to the APK (retrace)

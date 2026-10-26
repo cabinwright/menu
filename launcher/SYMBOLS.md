@@ -1,4 +1,4 @@
-# Kia launcher: symbol map
+# Stock launcher (Launcher_WP3): symbol map
 
 What the obfuscated names in `Launcher_WP3` mean, so nobody has to work it out again.
 
@@ -50,9 +50,9 @@ smali a -j 1 --api 18 smali -o classes.dex
 | `view/a/ao` | entry: launcher's own `com.android.launcher3.view.AppsMenu` ("Apps/Info") | not on the US list |
 | `view/aY` | `AllMenuView.java`: the All Menus screen | **`t(Z)` = full rebuild** (starts `aV`; called only from `Launcher.aZ(I)` and `Launcher.cz()`). **`a(aY, int, boolean)` (static) = partial refresh** of existing items (logs `fetching data with: ...`). Static accessors: `a(aY)` = loader lock, `b(aY)` = the drawn `ArrayList<Item>`, `c(aY)` = saved list, `a(aY, ArrayList)` converts it, `b(aY, ArrayList)` hands the final list to the view, `d(aY)` = the `g` entry list, `q(aY)` = Context, `e/f/g(aY)` = insertion positions for new items, `h/i/j(aY)` = view updates. Draws entries via `Item`s with resource ids (`setText(I)`, `Resources.getString/getDrawable`, `setBackgroundResource`, `setImageResource`). Registers receiver `br` for `allmenu.UPDATE`, `allmenu.GRIDVIEW_UPDATE`, `MODE_CHANGED`, ... (IntentFilter built near `.line 798`). |
 | `view/br` | `AllMenuView.java`: All Menus broadcast receiver | `onReceive`: `allmenu.UPDATE` and `allmenu.GRIDVIEW_UPDATE` → `aY.a(aY, int, boolean)` (partial refresh only, **not** a rebuild); also `MEDIA_MODE_AVAILABLE`, ... |
-| `view/aV` | `AllMenuView.java`: loader `AsyncTask` (`tB` = the `aY`) | `doInBackground`, under `aY`'s lock: calls `g.load()`, then for each entry with `isVisible()` (this is where entries like Warmer or Rear Climate drop out) merges it into `aY.b` by class name (existing items keep their place; new ones go at `aY.e/f/g` positions, logged `new item:`), then walks `aY.b` backwards pruning items no longer listed (`:goto_154`), then at **`:cond_261`** hands the list over (`aY.b(aY, list)`, `aY.j(aY)`). If `aY.b` is null it takes **`:cond_279`** instead: `aY.a(aY, new ArrayList)` (sets `rB`) then `aY.i(aY)` → **`aY.addItem()`**, which builds the list from scratch. **On the EV6 the list starts out null, so `addItem()` is the path actually taken.** kia-menu hooks both (`:cond_261` and the end of `addItem()`). |
+| `view/aV` | `AllMenuView.java`: loader `AsyncTask` (`tB` = the `aY`) | `doInBackground`, under `aY`'s lock: calls `g.load()`, then for each entry with `isVisible()` (this is where entries like Warmer or Rear Climate drop out) merges it into `aY.b` by class name (existing items keep their place; new ones go at `aY.e/f/g` positions, logged `new item:`), then walks `aY.b` backwards pruning items no longer listed (`:goto_154`), then at **`:cond_261`** hands the list over (`aY.b(aY, list)`, `aY.j(aY)`). If `aY.b` is null it takes **`:cond_279`** instead: `aY.a(aY, new ArrayList)` (sets `rB`) then `aY.i(aY)` → **`aY.addItem()`**, which builds the list from scratch. **On the EV6 the list starts out null, so `addItem()` is the path actually taken.** The hook covers both (`:cond_261` and the end of `addItem()`). |
 | `view/bp` | All Menus item click | launches via the entry's policy, else by `Item` package/class (with special cases, e.g. seat settings) |
-| `aY.addItem()` | `AllMenuView.java`: builds the drawn list from scratch | clears `rB` (the `ArrayList<Item>`), then for each `g` entry with `isVisible()` adds `Item(index, pkg, cls, bn(), bl(), bm())` (logs `itemId: N mPackageName:...`), ends at `:cond_ad`. **kia-menu's layout hook goes right before its `return-void`.** |
+| `aY.addItem()` | `AllMenuView.java`: builds the drawn list from scratch | clears `rB` (the `ArrayList<Item>`), then for each `g` entry with `isVisible()` adds `Item(index, pkg, cls, bn(), bl(), bm())` (logs `itemId: N mPackageName:...`), ends at `:cond_ad`. **The layout hook goes right before its `return-void`.** |
 | `view/Item` | one drawn All Menus item | fields (unobfuscated): `mItemId`, `mPackageName`, `mClassName`, `mTitleId`, `mEnableIconId`, `mDisableIconId`. `bQ()` = title id, `J(I)`/`K(I)` set icon ids, `setTitle(I)`. Placeholder (blank) cells are Items with class name `"Empty view"`. The Android Auto/CarPlay entry has the placeholder key `PhoneProjection_PackageName/PhoneProjection_ClassName` in `g`, resolved to the real app when drawn. |
 | `view/AppsMenu` | `AppsMenu.java`: an "Apps/Info" activity | listens to PACKAGE_ADDED/CHANGED/REMOVED |
 | `view/ar.1` | media source names for the home widget (`DOWNLOADAPP`, `USBMUSIC`, `DIPOMUSIC` = CarPlay, `GPMMUSIC` = Android Auto, ...) | `DOWNLOADAPP` is a music source, **not** an app slot |
@@ -60,8 +60,8 @@ smali a -j 1 --api 18 smali -o classes.dex
 
 **Reload:** Kia's `com.hkmc.system.app.allmenu.UPDATE` (no permission needed) only does the
 partial refresh (`aY.a(aY,int,boolean)`): icons and enabled states of the items already there.
-It does **not** run `g.load()` or the loader. A full rebuild needs `aY.t(true)`; the kia-menu
-patch adds the broadcast `dev.kiamenu.action.RELOAD` for that.
+It does **not** run `g.load()` or the loader. A full rebuild needs `aY.t(true)`; the Cabinwright
+patch adds the broadcast `dev.cabinwright.action.RELOAD` for that.
 
 **Logging:** `utils/i` logs under the tag `AdvancedLauncher` (debug and info levels show in
 logcat): useful markers are `start task to make menu list`, `loading menu entries...`,
@@ -76,7 +76,7 @@ by index, all with flags `0x14008000` and extra `root=Launcher`: `0` = `EditWidg
 workspace page - 1, from `Workspace.cl(kg())`), `2` = `TypeSettingActivity` (layout), `3` =
 `WebManualActivity` (extra `TYPE=1`). One `startActivity` at `.line 918` serves all four.
 `aY.gG()` is a second way into `AllMenuEdit` (same extras; `startActivity` at `.line 1394`,
-`aY.tR` = the `Launcher`). kia-menu hooks both `startActivity` calls with
+`aY.tR` = the `Launcher`). The hook catches both `startActivity` calls with
 `EditScreen.redirect(context, intent)`, which swaps only `AllMenuEdit` for Edit Menu. Outside
 the launcher, Kia's `DisplaySettings` (Setup) also opens `AllMenuEdit`; that path is untouched.
 
@@ -106,7 +106,7 @@ Icons are 99x99 px WebP in `res/drawable-hdpi/` and `res/drawable-night-hdpi/`, 
 | `0x7f0200c8`/`c9` | `drawable/hom_ev_66`/`hom_ev_dis_66` | EV icon |
 | `0x7f02012a` | `drawable/hom_settings_66` | Setup gear |
 
-Icon gradient (measured from `hom_ev/settings/phone`, see `api/tools/kia_icon.py`): day `#34E0D5` →
+Icon gradient (measured from `hom_ev/settings/phone`, see `api/tools/menu_icon.py`): day `#34E0D5` →
 `#5CB3DA` → `#847FDC`, night `#32A6AE` → `#3E81B1` → `#4E52B3`, top to bottom of the glyph;
 disabled = flat `#5D7378` @ ~20% (day), `#5E757C` @ ~40% (night).
 
