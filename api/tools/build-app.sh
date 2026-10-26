@@ -3,11 +3,12 @@
 # shrunk and optimized by R8. Kotlin and R8 come from fetch-tools.sh (pinned, checksummed).
 # An app folder has AndroidManifest.xml, src/, res/ and glyph.svgpath; the glyph becomes
 # its stock-style All Menus icons (@drawable/menu_icon and menu_icon_dis, day and night).
-# The Cabinwright API is compiled in: api/contract always, api/ui with --ui.
+# The Cabinwright API is compiled in: api/contract always, api/ui with --ui, and the
+# CarBroker client (api/broker) with --broker.
 # R8 keeps the manifest's components (aapt's rules) and api/tools/app-rules.pro; an app adds
 # its own keep rules in <app dir>/proguard-rules.pro (anything reached by reflection).
 # CABINWRIGHT_MAP=<file> keeps R8's name map, for reading stack traces (retrace).
-# usage: build-app.sh [--ui] <app dir> <output apk>
+# usage: build-app.sh [--ui] [--broker] <app dir> <output apk>
 # Signs with the Android debug key unless CABINWRIGHT_KEYSTORE is set (release builds):
 #   CABINWRIGHT_KEYSTORE=<.jks> CABINWRIGHT_KEYSTORE_PASS=<password> [CABINWRIGHT_KEY_ALIAS=<alias>]
 # (the alias can be left out when the keystore holds one key)
@@ -16,10 +17,15 @@ set -e
 TOOLS=$(cd "$(dirname "$0")" && pwd)
 API=$TOOLS/..
 UI=
-if [ "$1" = --ui ]; then
-    UI=$API/ui/src
+BROKER=
+while :; do
+    case $1 in
+        --ui) UI=$API/ui/src ;;
+        --broker) BROKER=$API/broker/src ;;
+        *) break ;;
+    esac
     shift
-fi
+done
 APP=$(cd "$1" && pwd)
 OUT=$2
 case "$OUT" in /*) ;; *) OUT=$(pwd)/$OUT ;; esac
@@ -40,8 +46,8 @@ python3 -I "$TOOLS/menu_icon.py" "$APP/glyph.svgpath" "$BUILD/res" menu_icon
     -G "$BUILD/aapt-rules.pro"
 
 # source lists (one per line) for the compilers' @argfiles
-find "$APP/src" "$API/contract/src" ${UI:+"$UI"} -name '*.java' >"$BUILD/java.txt"
-find "$APP/src" "$API/contract/src" ${UI:+"$UI"} -name '*.kt' >"$BUILD/kt.txt"
+find "$APP/src" "$API/contract/src" ${UI:+"$UI"} ${BROKER:+"$BROKER"} -name '*.java' >"$BUILD/java.txt"
+find "$APP/src" "$API/contract/src" ${UI:+"$UI"} ${BROKER:+"$BROKER"} -name '*.kt' >"$BUILD/kt.txt"
 STDLIB=$FT/kotlinc/lib/kotlin-stdlib.jar
 if [ -s "$BUILD/kt.txt" ]; then
     # Kotlin sees the Java sources (both ways round); no JDK, only Android's classes

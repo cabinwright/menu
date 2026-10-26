@@ -4,7 +4,7 @@
 # Log: launcher-restore.log on the stick.
 export PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin
 export LD_LIBRARY_PATH=/vendor/lib:/system/lib
-B=/data/nemesis/backup/ev6.launcher
+B=/data/nemesis/backup/cabinwright.menu.launcher
 APP=/system/app
 SUM_APK=768d9fda8efcd2d38dbe34e58ca37d1a
 SUM_ODEX=12c9a96cae35fce9c11fab3918cd912a

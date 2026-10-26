@@ -3,7 +3,6 @@ package dev.cabinwright.menu
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Environment
-import android.util.Log
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -15,8 +14,7 @@ import java.io.IOException
  * launcher reported. Entry keys are "<package>/<activity class>", as in MenuContract.
  * The layout is also kept in [BACKUP] on the internal sdcard: a NEMESIS package
  * update reinstalls the app, which wipes its own data, and the layout is restored from
- * there on first use. The first time, with no backup of its own yet, it imports the one
- * kia.menu (this package's previous name) left in [LEGACY_BACKUP].
+ * there on first use.
  */
 internal class MenuStore(context: Context) {
     /** One All Menus entry as the launcher reported it. */
@@ -66,34 +64,16 @@ internal class MenuStore(context: Context) {
 
     private fun restore() {
         val edit = prefs.edit().putBoolean("restored", true)
-        // the layout the previous package (kia.menu, Edit Menu 1.2 and older) kept, while
-        // there is no backup of our own yet: read only, never written or removed
-        val legacy = !BACKUP.exists() && LEGACY_BACKUP.isFile
         try {
-            val o = readLayout(if (legacy) LEGACY_BACKUP else BACKUP)
-            var order = strings(o.getJSONArray("order").toString())
-            var hidden = strings(o.getJSONArray("hidden").toString())
-            if (legacy) {
-                order = order.map { legacyKey(it) }
-                hidden = hidden.map { legacyKey(it) }
-            }
-            edit.putString("order", JSONArray(order).toString())
-                .putString("hidden", JSONArray(hidden).toString())
-            if (legacy) {
-                Log.i(TAG, "imported the layout from $LEGACY_BACKUP (${order.size} placed, ${hidden.size} hidden)")
-            }
+            if (BACKUP.length() > 1 shl 20) throw IOException("backup too big")
+            val o = JSONObject(BACKUP.readText())
+            edit.putString("order", o.getJSONArray("order").toString())
+                .putString("hidden", o.getJSONArray("hidden").toString())
         } catch (ignored: IOException) {
             // no backup yet: start from the launcher's own order
         } catch (ignored: JSONException) {
         }
         edit.commit()
-        // the imported layout gets a backup of its own, so it is imported only once
-        if (legacy) backup()
-    }
-
-    private fun readLayout(f: File): JSONObject {
-        if (f.length() > 1 shl 20) throw IOException("backup too big")
-        return JSONObject(f.readText())
     }
 
     // ---- what the launcher has
@@ -136,27 +116,7 @@ internal class MenuStore(context: Context) {
     }
 
     companion object {
-        private const val TAG = "CabinwrightMenu"
         val BACKUP = File(Environment.getExternalStorageDirectory(), "cabinwright/menu/layout.json")
-
-        /** Where kia.menu (the previous name of this package) kept the layout. */
-        val LEGACY_BACKUP = File(Environment.getExternalStorageDirectory(), "kia-menu/layout.json")
-
-        /** The packages renamed with it: an old layout's keys for them name the new ones. */
-        private val RENAMED = mapOf(
-            "dev.kiamenu.editor" to "dev.cabinwright.menu",
-            "dev.kiastore" to "dev.cabinwright.store",
-            "dev.kiatweaks" to "dev.cabinwright.tweaks",
-        )
-
-        /** "<package>/<activity class>" with a renamed package (and its classes) moved over. */
-        fun legacyKey(key: String): String {
-            val pkg = key.substringBefore('/')
-            val to = RENAMED[pkg] ?: return key
-            val cls = key.substringAfter('/', "")
-            val newCls = if (cls.startsWith("$pkg.")) to + cls.substring(pkg.length) else cls
-            return "$to/$newCls"
-        }
 
         private fun strings(json: String?): List<String> = try {
             val a = JSONArray(json)

@@ -9,6 +9,7 @@ installed.
 |---|---|
 | `api/contract` | `MenuContract`: the one class an app needs to show up in All Menus. No dependencies. |
 | `api/ui` | Optional: `CarPage` (a screen in the head unit's look: colours, Mobis font, day/night, keeps clear of the split-screen panel), `SplitScreen`, and `CarAudio` (makes the app the car's audio source, so its sound reaches the speakers with normal knob volume). |
+| `api/broker` | Optional: `CarBroker`, the client of the store's broker, through which an app uses the capabilities (tweaks, logs, settings, root) the driver gave it. |
 | `api/tools` | `build-app.sh` (builds a Kotlin or Java app without Gradle, shrunk by R8), `lint.sh` (ktlint, detekt, ShellCheck and an API 19 compile check), `fetch-tools.sh` (the pinned tools both use) and `menu_icon.py` (stock-style gradient icons from an SVG path). |
 | `launcher/` | The launcher hook: the stock `Launcher_WP3.apk` plus a `classes.dex` that adds custom apps, applies the layout, and opens Edit Menu from ≡ → Edit Home Icons. |
 | `editor/` | **Edit Menu**: a launcher-style grid. Drag to reorder, ✕ to hide, "Add apps" to bring them back. NEMESIS package `cabinwright.menu`. |
@@ -33,26 +34,10 @@ installed.
    ```
 
    `install-launcher.sh` checks the stock checksums and backs the stock files up to
-   `/data/nemesis/backup/ev6.launcher` before touching `/system`. Reboot to load it.
+   `/data/nemesis/backup/cabinwright.menu.launcher` before touching `/system`. Reboot to load it.
    To undo, run `launcher/restore-launcher.sh` from a USB stick (NEMESIS.data `type=execute`).
 
 Without Edit Menu installed the hook just adds custom apps after the stock entries.
-
-### Moving from kia.menu
-
-This project used to be called kia-menu (NEMESIS package `kia.menu`, app `dev.kiamenu.editor`).
-`cabinwright.menu` is a new package beside it:
-
-1. Install `cabinwright.menu`. On first start Edit Menu imports `/sdcard/kia-menu/layout.json`
-   (read only) into `/sdcard/cabinwright/menu/layout.json`, with the renamed apps' entries
-   (Edit Menu, Tweaks, the store) moved to their new names. It logs `imported the layout`
-   (tag `CabinwrightMenu`).
-2. Remove `kia.menu` (it has no install hooks).
-3. Rebuild the launcher hook from this checkout and run `install-launcher.sh` again: an
-   installed hook only knows the old names (`dev.kiamenu.*`). The script keeps the stock
-   backup in `/data/nemesis/backup/ev6.launcher` and replaces the hook. Reboot.
-
-The store's `docs/migrating-from-kia.md` has the whole switch for a car, with a script.
 
 ## Adding your own app
 
@@ -71,7 +56,7 @@ Put the app in a folder with `AndroidManifest.xml`, `src/`, `res/` and `glyph.sv
 SVG path in a 24x24 box, which becomes the icons) and build it:
 
 ```sh
-api/tools/build-app.sh --ui <app dir> out.apk   # --ui also compiles in api/ui
+api/tools/build-app.sh --ui <app dir> out.apk   # --ui also compiles in api/ui, --broker api/broker
 ```
 
 `src/` can be Kotlin, Java or both. The app is compiled against Android 4.4's `android.jar`
@@ -81,18 +66,50 @@ Anything reached only by reflection needs a keep rule in `<app dir>/proguard-rul
 references (`::foo`): they pull in Kotlin's reflection classes.
 
 Send `dev.cabinwright.action.RELOAD` to make All Menus pick it up. See `MenuContract` for the rest.
-[ev6-fixes](https://github.com/hazptr/ev6-fixes) is a complete example.
+The Tweaks app (`app/` in [cabinwright/tweaks](https://github.com/cabinwright/tweaks)) is a
+complete example, CarBroker included.
+
+### Capabilities: CarBroker
+
+An app installed from the store uses privileged features through the store's broker
+(`cabinwrightd`), never as root itself. It declares each capability in its index entry with a
+reason (`"capabilities": {"tweaks": "Shows and switches your tweaks"}`), the driver agrees at
+install, and `logs` and `root` also ask at first use, while parked. Build with `--broker`:
+
+```kotlin
+Thread {   // calls block: never on the main thread
+    val hello = CarBroker.hello() ?: return@Thread   // null: no store, or its service isn't running
+    val r = CarBroker.call(CarBroker.TWEAKS, "list")
+    if (r.ok) show(r.data as JSONObject) else Log.w(TAG, "${r.error}: ${r.message}")
+}.start()
+```
+
+| Capability | Lets the app | Asks at first use |
+|---|---|---|
+| `tweaks` | `list`, `set {id, on}`, `log {id}`: list tweaks, read their status and log, switch them | no |
+| `logs` | `read {filter?, lines?}`: read logcat | yes |
+| `settings` | `get`/`put {table, name, value?}`: the settings and properties on the store's allowlist | no |
+| `root` | `exec {command, timeout_ms?}` → `{code, stdout, stderr}`: run commands as root, each one logged | yes |
+
+`hello()` gives the broker's version and the app's grants (capability → `always`, `session`,
+`once`, `ask` or `off`). `call(cap, op, args, timeoutMs = 10_000)` returns a `Result`: `ok` and
+`data` (the reply's JSON), or an `error` code and a plain-words `message`. The broker's codes are
+`unknown_caller` (not installed by the store), `not_granted`, `denied`, `not_parked` (retry
+once parked), `bad_request`, `unsupported` (an older broker) and `failed`; the client adds
+`not_running`, `timeout` and `io_error`. All are constants on `CarBroker`. The protocol is in the
+store's [design](https://github.com/cabinwright/store/blob/main/docs/design.md).
 
 ## Building
 
 Needs a JDK (11), Python 3, curl, and the Android SDK's `build-tools;29.0.2` (`ANDROID_HOME`,
 or `~/Library/Android/sdk`). Everything else (Kotlin, R8, Android 4.4's `android.jar`, the lint
-tools) is downloaded once by `api/tools/fetch-tools.sh`, pinned and checked by sha256, into
-`~/.cache/cabinwright-tools` (or `CABINWRIGHT_TOOLS`).
+tools, Android's `org.json` for the host tests) is downloaded once by `api/tools/fetch-tools.sh`,
+pinned and checked by sha256, into `~/.cache/cabinwright-tools` (or `CABINWRIGHT_TOOLS`).
 
 ```sh
 ./build.sh                 # dist/cabinwright.menu.zip, and dist/cabinwright.menu.map (R8's name map)
 launcher/check-hook.sh     # compiles the hook without the manufacturer's files
+test/test.sh               # CarBroker's wire format against a fake broker, on the host JVM
 api/tools/lint.sh          # lint everything; --fix reformats the Kotlin
 ```
 

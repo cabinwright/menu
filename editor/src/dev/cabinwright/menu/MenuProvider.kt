@@ -61,6 +61,6 @@ class MenuProvider : ContentProvider() {
     override fun update(uri: Uri, values: ContentValues?, selection: String?, args: Array<String>?): Int = 0
 
     private companion object {
-        const val TAG = "EV6Menu"
+        const val TAG = "CabinwrightMenu"
     }
 }

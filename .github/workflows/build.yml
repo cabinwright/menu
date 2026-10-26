@@ -38,6 +38,9 @@ jobs:
       - name: Lint
         run: sh api/tools/lint.sh
 
+      - name: Test
+        run: sh test/test.sh
+
       - name: Signing key
         env:
           KEYSTORE_B64: ${{ secrets.CABINWRIGHT_KEYSTORE_B64 }}

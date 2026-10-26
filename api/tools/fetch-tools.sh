@@ -1,6 +1,6 @@
 #!/bin/sh
 # Downloads the pinned tools that build-app.sh and lint.sh use (Kotlin, R8, Android 4.4's
-# android.jar, ktlint, detekt, shellcheck), once, into
+# android.jar, ktlint, detekt, shellcheck, and Android's org.json for host tests), once, into
 # ${CABINWRIGHT_TOOLS:-~/.cache/cabinwright-tools}, and checks them against fixed sha256s.
 # Prints the tools directory.
 set -e
@@ -17,6 +17,10 @@ KTLINT_SHA=a9f923be58fbd32670a17f0b729b1df804af882fa57402165741cb26e5440ca1
 DETEKT=1.23.7
 DETEKT_SHA=84beded283012cb2b38bcaef4996452fcd6069d2e9ca74b50eaa79e0ad21897e
 SHELLCHECK=0.10.0
+# Android's own org.json, packaged for the JVM: android.jar only has stubs of it, and host
+# tests of code that uses it need the real thing
+ANDROID_JSON=0.0.20131108.vaadin1
+ANDROID_JSON_SHA=dfb7bae2f404cfe0b72b4d23944698cb716b7665171812a0a4d0f5926c0fac79
 case "$(uname -s).$(uname -m)" in
     Darwin.x86_64) SC_OS=darwin.x86_64 SC_SHA=ef27684f23279d112d8ad84e0823642e43f838993bbb8c0963db9b58a90464c2 ;;
     Linux.x86_64) SC_OS=linux.x86_64 SC_SHA=6c881ab0698e4e6ea235245f22832860544f17ba386442fe7e9d629f8cbedf87 ;;
@@ -54,6 +58,8 @@ fi
 fetch "https://github.com/pinterest/ktlint/releases/download/$KTLINT/ktlint" "ktlint-$KTLINT.jar" $KTLINT_SHA
 fetch "https://github.com/detekt/detekt/releases/download/v$DETEKT/detekt-cli-$DETEKT-all.jar" \
     "detekt-cli-$DETEKT-all.jar" $DETEKT_SHA
+fetch "https://repo1.maven.org/maven2/com/vaadin/external/google/android-json/$ANDROID_JSON/android-json-$ANDROID_JSON.jar" \
+    "android-json-$ANDROID_JSON.jar" $ANDROID_JSON_SHA
 if [ -n "$SC_OS" ] && [ ! -x "$DIR/shellcheck-$SHELLCHECK" ]; then
     fetch "https://github.com/koalaman/shellcheck/releases/download/v$SHELLCHECK/shellcheck-v$SHELLCHECK.$SC_OS.tar.xz" \
         shellcheck.tar.xz "$SC_SHA"
@@ -63,6 +69,7 @@ fi
 ln -sf "r8-$R8.jar" "$DIR/r8.jar"
 ln -sf "ktlint-$KTLINT.jar" "$DIR/ktlint.jar"
 ln -sf "detekt-cli-$DETEKT-all.jar" "$DIR/detekt.jar"
+ln -sf "android-json-$ANDROID_JSON.jar" "$DIR/android-json.jar"
 [ -x "$DIR/shellcheck-$SHELLCHECK" ] && ln -sf "shellcheck-$SHELLCHECK" "$DIR/shellcheck"
 ln -sfn "kotlinc-$KOTLIN" "$DIR/kotlinc"
 echo "$DIR"
