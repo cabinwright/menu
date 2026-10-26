@@ -8,7 +8,7 @@ installed.
 | Part | What it is |
 |---|---|
 | `api/contract` | `MenuContract`: the one class an app needs to show up in All Menus. No dependencies. |
-| `api/ui` | Optional: `KiaPage` (a screen in Kia's look: colours, Mobis font, day/night, keeps clear of the split-screen panel) and `SplitScreen`. |
+| `api/ui` | Optional: `KiaPage` (a screen in Kia's look: colours, Mobis font, day/night, keeps clear of the split-screen panel), `SplitScreen`, and `KiaAudio` (makes the app the car's audio source, so its sound reaches the speakers with normal knob volume). |
 | `api/tools` | `build-app.sh` (builds an app without Gradle) and `kia_icon.py` (Kia-style gradient icons from an SVG path). |
 | `launcher/` | The launcher hook: Kia's stock `Launcher_WP3.apk` plus a `classes.dex` that adds custom apps, applies the layout, and opens Edit Menu from ≡ → Edit Home Icons. |
 | `editor/` | **Edit Menu**: a launcher-style grid. Drag to reorder, ✕ to hide, "Add apps" to bring them back. NEMESIS package `kia.menu`. |
