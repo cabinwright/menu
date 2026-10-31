@@ -12,7 +12,7 @@ cp -R "$ROOT/package/." "$STAGE/"
 mkdir -p "$ROOT/dist"
 # R8's name map, for reading the editor's stack traces (retrace)
 CABINWRIGHT_MAP=$ROOT/dist/cabinwright.menu.map \
-    sh "$ROOT/api/tools/build-app.sh" --ui "$ROOT/editor" "$STAGE/edit-menu.apk" >/dev/null
+    sh "$ROOT/sdk/api/tools/build-app.sh" --ui "$ROOT/editor" "$STAGE/edit-menu.apk" >/dev/null
 rm -f "$ROOT/dist/cabinwright.menu.zip"
 (cd "$STAGE" && zip -qrX "$ROOT/dist/cabinwright.menu.zip" .)
 echo "$ROOT/dist/cabinwright.menu.zip"

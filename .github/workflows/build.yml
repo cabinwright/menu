@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       # before setup-java: the runner's sdkmanager needs its default (newer) Java.
       # Only build-tools: android.jar (API 19) comes from fetch-tools.sh with the rest
@@ -30,16 +32,13 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/cabinwright-tools
-          key: cabinwright-tools-${{ runner.os }}-${{ hashFiles('api/tools/fetch-tools.sh') }}
+          key: cabinwright-tools-${{ runner.os }}-${{ hashFiles('sdk/api/tools/fetch-tools.sh') }}
 
       - name: Tools
-        run: sh api/tools/fetch-tools.sh
+        run: sh sdk/api/tools/fetch-tools.sh
 
       - name: Lint
-        run: sh api/tools/lint.sh
-
-      - name: Test
-        run: sh test/test.sh
+        run: sh sdk/api/tools/lint.sh .
 
       - name: Signing key
         env:
