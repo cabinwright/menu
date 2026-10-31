@@ -64,7 +64,7 @@ find "$HERE/hook/src" "$HERE/../api/contract/src" -name '*.java' >"$CS/hook.txt"
 find "$CS/hook" -name '*.class' -exec "$BT/d8" --release --min-api 19 --lib "$JAR" --classpath "$CS/stubs" \
     --output "$CS/hookdex" {} +
 "$JAVA" -jar "$TOOLS/baksmali-2.5.2.jar" d "$CS/hookdex/classes.dex" -o "$CS/hooksmali"
-cp -R "$CS/hooksmali/dev" "$CS/smali/"
+cp -R "$CS/hooksmali/app" "$CS/smali/"
 
 python3 -I "$HERE/hook/patch.py" "$CS/smali"
 # -j 1: more threads write a different (equivalent) dex each run
