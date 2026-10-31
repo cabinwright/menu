@@ -1,0 +1,11 @@
+[nemesis]
+version=1.0
+id=cabinwright.menu
+name=Edit Menu
+types=application
+
+[app.0]
+kind=apk
+path=edit-menu.apk
+package=app.cabinwright.menu
+component=app.cabinwright.menu/.MenuActivity

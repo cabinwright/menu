@@ -1,0 +1,96 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # before setup-java: the runner's sdkmanager needs its default (newer) Java.
+      # Only build-tools: android.jar (API 19) comes from fetch-tools.sh with the rest
+      - name: Android SDK parts
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;29.0.2" > /dev/null
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      # Kotlin, R8, android-19.jar, ktlint, detekt, shellcheck: pinned in fetch-tools.sh
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/cabinwright-tools
+          key: cabinwright-tools-${{ runner.os }}-${{ hashFiles('api/tools/fetch-tools.sh') }}
+
+      - name: Tools
+        run: sh api/tools/fetch-tools.sh
+
+      - name: Lint
+        run: sh api/tools/lint.sh
+
+      - name: Test
+        run: sh test/test.sh
+
+      - name: Signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.CABINWRIGHT_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "CABINWRIGHT_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          else
+            # forks and PRs from them: a throwaway debug key
+            mkdir -p ~/.android
+            keytool -genkeypair -keystore ~/.android/debug.keystore -storepass android -keypass android \
+              -alias androiddebugkey -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
+
+      - name: Version
+        run: |
+          VERSION=$(sed -n 's/^version=//p' package/NEMESIS.data)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME doesn't match package/NEMESIS.data version $VERSION"
+            exit 1
+          fi
+
+      - name: Build
+        env:
+          CABINWRIGHT_KEYSTORE_PASS: ${{ secrets.CABINWRIGHT_KEYSTORE_PASS }}
+        run: |
+          sh build.sh
+          sh launcher/check-hook.sh
+          mv dist/cabinwright.menu.zip "dist/cabinwright.menu-v$VERSION.zip"
+          mv dist/cabinwright.menu.map "dist/cabinwright.menu-v$VERSION.map"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cabinwright.menu-v${{ env.VERSION }}
+          path: |
+            dist/*.zip
+            dist/*.map
+
+      - name: Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > "$RUNNER_TEMP/notes.md" <<NOTES
+          **Edit Menu** (NEMESIS package \`cabinwright.menu\` $VERSION): install \`cabinwright.menu-v$VERSION.zip\` with NEMESIS
+          (USB stick, or \`nemesis install --update <zip>\` over ADB).
+          \`cabinwright.menu-v$VERSION.map\` is R8's name map, for reading its stack traces (retrace).
+
+          The launcher hook is built from your own car's stock launcher: see the README.
+          NOTES
+          gh release create "$GITHUB_REF_NAME" dist/*.zip dist/*.map --title "Cabinwright menu $GITHUB_REF_NAME" \
+            --notes-file "$RUNNER_TEMP/notes.md" --generate-notes

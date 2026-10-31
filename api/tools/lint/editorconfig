@@ -1,0 +1,8 @@
+# ktlint settings for Cabinwright repos (lint.sh passes this file)
+root = true
+
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+max_line_length = 120
+ktlint_code_style = intellij_idea

@@ -1,0 +1,9 @@
+# shellcheck settings for Cabinwright repos (lint.sh passes this file).
+# The dialect comes from the #!: build scripts are POSIX sh (#!/bin/sh); on-car scripts
+# (#!/system/bin/sh, and sourced files with no #!) run in Android 4.4's mksh, which lint.sh
+# checks as ksh: `local`, `print` and ${var//pattern} are fine there. mksh on the car has
+# only toolbox commands (no sed, awk, head, tail or tr), which shellcheck can't know.
+
+# follow `. "$D/common.sh"` and friends from the script's own folder
+external-sources=true
+source-path=SCRIPTDIR
